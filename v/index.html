@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="zh-TW" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>演示版｜議事表決系統</title>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.4.19/dist/full.min.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@200..900&family=Chiron+Hei+HK:ital,wght@0,200..900;1,200..900&family=Noto+Emoji:wght@300..700&display=swap');
+        /* 自定義狀態顏色 */
+        .status-absent { background-color: #374151; color: #9ca3af; } /* 灰色：未出席 */
+        .status-present { background-color: #ffffff; color: #000000; } /* 白色：出席/未表決 */
+        .status-yes { background-color: #22c55e; color: #ffffff; }     /* 綠色：同意 */
+        .status-no { background-color: #ef4444; color: #ffffff; }      /* 紅色：反對 */
+        .status-abstain { background-color: #eab308; color: #000000; } /* 黃色：棄權 */
+        html {
+            font-family: "Chiron Hei HK", sans-serif;
+        }
+        button, .collapse-title {
+            font-family:"Chiron GoRound TC", sans-serif;
+        }
+        .font-ntemoji {
+            font-ntemoji: "Noto Emoji", sans-serif;
+        }
+        </style>
+</head>
+<body class="min-h-screen bg-neutral text-neutral-content font-sans">
+
+    <div id="page-login" class="flex flex-col items-center justify-center h-screen">
+        <div class="card w-96 bg-base-100 shadow-xl text-base-content">
+            <div class="card-body items-center text-center">
+                <h2 class="card-title text-2xl mb-4">演示版｜議事表決系統</h2>
+                <input type="text" id="input-id" placeholder="請輸入學號/代碼" class="input input-bordered w-full max-w-xs mb-4" />
+                <div class="card-actions justify-end w-full">
+                    <button class="btn btn-primary w-full" onclick="mockLogin()">簽到 / 登入</button>
+                </div>
+                <div class="divider">或是</div>
+                <button class="btn btn-outline btn-sm" onclick="switchPage('page-bigscreen')">開啟大螢幕模式 (主辦人)</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="page-member" class="hidden container mx-auto p-4 max-w-md pb-24">
+        <div class="flex justify-between items-center mb-6">
+            <div>
+                <h1 class="text-xl font-bold" id="user-name-display">議員姓名</h1>
+                <span class="badge badge-success">已簽到</span>
+            </div>
+            <button class="btn btn-sm btn-ghost" onclick="switchPage('page-login')">登出</button>
+        </div>
+
+        <div class="card bg-base-100 shadow-xl text-base-content mb-6">
+            <div class="card-body">
+                <h2 class="card-title text-sm text-gray-500">目前程序</h2>
+                <p class="text-2xl font-bold text-primary" id="member-current-topic">案由三：組織章程修訂案</p>
+                <div class="badge badge-outline mt-2">表決中</div>
+            </div>
+        </div>
+
+        <div id="action-area">
+            <div class="grid grid-cols-3 gap-2 mb-4">
+                <button class="btn btn-success text-white h-16 text-lg">同意</button>
+                <button class="btn btn-error text-white h-16 text-lg">反對</button>
+                <button class="btn btn-warning text-black h-16 text-lg">棄權</button>
+            </div>
+            
+            <button class="btn btn-outline w-full mb-4"><span class="font-ntemoji">🖐️</span>請求發言地位</button>
+            
+            <div class="collapse collapse-arrow bg-base-200 text-base-content">
+                <input type="checkbox" /> 
+                <div class="collapse-title font-medium">提出臨時動議</div>
+                <div class="collapse-content"> 
+                    <textarea class="textarea textarea-bordered w-full" placeholder="輸入動議內容..."></textarea>
+                    <button class="btn btn-sm btn-primary mt-2 w-full">送出</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="page-bigscreen" class="hidden h-screen flex flex-col p-6 bg-black">
+        <header class="flex justify-between items-start mb-8 border-b border-gray-700 pb-4">
+            <div>
+                <h1 class="text-5xl font-bold text-white mb-2">第3屆第1次會員大會</h1>
+                <div class="text-2xl text-gray-400">
+                    <span class="mr-6"><span class="font-ntemoji">🕒</span> 2025-12-25</span>
+                    <span><span class="font-ntemoji">📍</span> 階梯教室</span>
+                </div>
+            </div>
+            <div class="text-right">
+                <div class="text-xl text-gray-500">目前程序</div>
+                <div class="text-4xl font-bold text-warning" id="screen-topic">案由三：組織章程修訂案</div>
+                <div class="mt-2 text-xl">
+                    <span class="text-green-400">同意: 5</span> / 
+                    <span class="text-red-400">反對: 2</span> / 
+                    <span class="text-yellow-400">棄權: 0</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="grid grid-cols-5 gap-4 flex-grow content-start" id="seat-grid">
+            <div class="card status-yes shadow-lg flex items-center justify-center h-32">
+                <div class="text-center">
+                    <div class="text-3xl font-bold">01</div>
+                    <div class="text-xl">鼻子痛</div>
+                </div>
+            </div>
+            <div class="card status-no shadow-lg flex items-center justify-center h-32">
+                <div class="text-center">
+                    <div class="text-3xl font-bold">02</div>
+                    <div class="text-xl">粥永致</div>
+                </div>
+            </div>
+            <div class="card status-present shadow-lg flex items-center justify-center h-32">
+                <div class="text-center">
+                    <div class="text-3xl font-bold">03</div>
+                    <div class="text-xl">歐至常</div>
+                </div>
+            </div>
+             <div class="card status-abstain shadow-lg flex items-center justify-center h-32">
+                <div class="text-center">
+                    <div class="text-3xl font-bold">04</div>
+                    <div class="text-xl">林子翔</div>
+                </div>
+            </div>
+            <div class="card status-absent shadow-lg flex items-center justify-center h-32">
+                <div class="text-center">
+                    <div class="text-3xl font-bold">05</div>
+                    <div class="text-xl">艾克曼</div>
+                </div>
+            </div>
+            </div>
+
+        <div class="fixed bottom-0 left-0 w-full bg-gray-900 p-2 opacity-10 hover:opacity-100 transition-opacity flex gap-4">
+            <button class="btn btn-sm btn-primary">開始表決</button>
+            <button class="btn btn-sm btn-error">截止表決</button>
+            <button class="btn btn-sm">下一議程</button>
+            <button class="btn btn-sm btn-ghost" onclick="switchPage('page-login')">返回首頁</button>
+        </div>
+    </div>
+
+    <script>
+        // 簡單的頁面切換邏輯
+        function switchPage(pageId) {
+            document.getElementById('page-login').classList.add('hidden');
+            document.getElementById('page-member').classList.add('hidden');
+            document.getElementById('page-bigscreen').classList.add('hidden');
+            document.getElementById(pageId).classList.remove('hidden');
+        }
+
+        // 模擬登入
+        function mockLogin() {
+            const id = document.getElementById('input-id').value;
+            if(id) {
+                document.getElementById('user-name-display').innerText = "議員 " + id;
+                switchPage('page-member');
+            } else {
+                alert("請輸入學號");
+            }
+        }
+    </script>
+</body>
+</html>
