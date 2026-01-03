@@ -23,6 +23,10 @@
         }
         .font-ntemoji {
             font-family: "Noto Emoji", sans-serif; !important
+            font-weight: 700;
+        }
+        #seat-grid > div{
+            width: 5.5rem
         }
         </style>
 </head>
@@ -99,7 +103,7 @@
             </div>
         </header>
 
-        <div class="grid grid-cols-5 gap-4 flex-grow content-start" id="seat-grid">
+        <div class="flex gap-4 flex-wrap flex-grow content-start justify-evenly" id="seat-grid">
             <div class="card status-yes shadow-lg flex items-center justify-center h-32">
                 <div class="text-center">
                     <div class="text-3xl font-bold">01</div>
