@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="zh-TW" data-theme="emerald">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>學生會組織章程 - 法規檢視系統</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Varela+Round&display=swap" rel="stylesheet">
+    
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.4.19/dist/full.min.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        // 如果您有託管 Chiron GoRound TC，請將其放在首位
+                        sans: ['"Noto Sans TC"', 'sans-serif'],
+                        rounded: ['"Chiron GoRound TC"', '"Varela Round"', '"M PLUS Rounded 1c"', 'ui-rounded', 'sans-serif'],
+                    },
+                    colors: {
+                        law: {
+                            50: '#f2f9f9',
+                            100: '#ddeff0',
+                            600: '#0f766e', // 穩重的法規綠/藍色
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* 滾動平滑 */
+        html { scroll-behavior: smooth; }
+        
+        /* 調整法規條文的排版 */
+        .article-content { line-height: 1.8; text-align: justify; }
+        .article-number { font-weight: 700; color: #0f766e; margin-right: 0.5rem; }
+
+        /* 手機版浮動按鈕動畫 */
+        #mobile-toc-btn {
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s;
+            transform: translateY(200%); /* 預設隱藏 */
+            opacity: 0;
+        }
+        #mobile-toc-btn.visible {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        /* 目錄當前章節高亮 */
+        .toc-link.active {
+            color: #0f766e;
+            font-weight: 700;
+            border-left: 3px solid #0f766e;
+            background-color: #ddeff0;
+        }
+    </style>
+</head>
+<body class="bg-base-200 min-h-screen font-sans text-base-content selection:bg-primary selection:text-white">
+
+    <div class="navbar bg-base-100 shadow-sm sticky top-0 z-40 border-b border-base-200">
+        <div class="flex-1">
+            <a class="btn btn-ghost text-xl font-rounded tracking-wide text-law-600">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 mr-1">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 21v-8.25M15.75 21v-8.25M8.25 21v-8.25M3 9l9-6 9 6m-1.5 12V10.332A48.36 48.36 0 0012 9.75c-2.551 0-5.056.2-7.5.582V21M3 21h18M12 6.75h.008v.008H12V6.75z" />
+                </svg>
+                法規資料庫
+            </a>
+        </div>
+        <div class="flex-none">
+            <ul class="menu menu-horizontal px-1 font-rounded hidden sm:flex">
+                <li><a>法規列表</a></li>
+                <li><a>最新公告</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="container mx-auto px-4 py-8 flex flex-col lg:flex-row gap-8 relative">
+        
+        <aside class="hidden lg:block w-64 flex-shrink-0 h-[calc(100vh-100px)] sticky top-24 overflow-y-auto">
+            <div class="bg-base-100 p-4 rounded-xl shadow-sm border border-base-200">
+                <h3 class="font-rounded font-bold text-lg mb-4 text-gray-400 uppercase tracking-widest text-xs">Table of Contents</h3>
+                <ul class="menu w-full p-0 font-rounded text-sm" id="desktop-toc">
+                    </ul>
+            </div>
+        </aside>
+
+        <main class="flex-1 min-w-0">
+            <div class="bg-base-100 rounded-box shadow-xl border border-base-200 p-6 md:p-10 lg:p-12 relative overflow-hidden">
+                
+                <div class="absolute -top-20 -right-20 w-64 h-64 bg-law-100 rounded-full blur-3xl opacity-50 pointer-events-none"></div>
+
+                <header class="mb-8 relative z-10">
+                    <div class="badge badge-primary badge-outline mb-2 font-rounded">自治條例</div>
+                    <h1 class="text-3xl md:text-4xl font-bold tracking-tight mb-4 text-gray-800">
+                        國立高師大附中學生會組織章程
+                    </h1>
+                    
+                    <div class="text-sm text-gray-500 bg-base-200/50 p-4 rounded-lg border border-base-200">
+                        <div class="flex flex-col gap-2">
+                            <div class="flex items-start gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5 text-law-600 mt-0.5">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-13a.75.75 0 00-1.5 0v5c0 .414.336.75.75.75l4 0a.75.75 0 000-1.5l-3.25 0V5.25z" clip-rule="evenodd" />
+                                </svg>
+                                <div>
+                                    <span class="font-bold text-gray-700">最新修正：</span>
+                                    <span class="font-mono">2024年12月25日</span> 由 <span class="badge badge-ghost badge-sm">學生議會</span> 三讀通過
+                                </div>
+                            </div>
+                            <div class="pl-7 text-xs text-gray-400">
+                                歷史修正：2023.09.01 全文修正、2022.05.20 部分條文修正
+                            </div>
+                        </div>
+                    </div>
+                </header>
+
+                <div class="flex flex-wrap gap-2 mb-10 pb-6 border-b border-base-200 font-rounded">
+                    <button class="btn btn-sm btn-outline gap-2 hover:btn-primary" onclick="copyUrl()">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
+                        </svg>
+                        複製連結
+                    </button>
+                    <button class="btn btn-sm btn-outline gap-2 hover:btn-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                        </svg>
+                        下載 PDF
+                    </button>
+                    <button class="btn btn-sm btn-ghost gap-2 text-gray-500">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        歷史版本
+                    </button>
+                </div>
+
+                <article class="prose prose-slate max-w-none prose-headings:scroll-mt-28 prose-headings:font-sans">
+                    
+                    <h2 id="chapter-1">第一章 總則</h2>
+                    <div class="pl-2 border-l-4 border-law-600/20 mb-6">
+                        <p class="article-content">
+                            <span class="article-number">第一條</span>
+                            本會定名為「國立高師大附中學生會」（以下簡稱本會）。
+                        </p>
+                        <p class="article-content">
+                            <span class="article-number">第二條</span>
+                            本會依據《高級中等教育法》第五十三條設立，為本校最高學生自治組織。
+                        </p>
+                        <p class="article-content">
+                            <span class="article-number">第三條</span>
+                            本會之宗旨如下：<br>
+                            一、保障學生權益，維護學生自由。<br>
+                            二、培養民主法治精神，增進自治能力。<br>
+                            三、促進校園和諧，溝通師生意見。
+                        </p>
+                    </div>
+
+                    <h2 id="chapter-2">第二章 會員權利與義務</h2>
+                    <div class="pl-2 border-l-4 border-law-600/20 mb-6">
+                        <p class="article-content">
+                            <span class="article-number">第四條</span>
+                            凡本校具學籍之在學學生，均為本會會員。
+                        </p>
+                        <p class="article-content">
+                            <span class="article-number">第五條</span>
+                            會員享有下列權利：<br>
+                            一、選舉、罷免本會會長、副會長及學生議員。<br>
+                            二、創制、複決本會法規。<br>
+                            三、參與本會舉辦之各項活動。
+                        </p>
+                    </div>
+
+                    <h2 id="chapter-3">第三章 組織架構</h2>
+                    <p class="text-gray-500 italic text-sm mb-4">（本章規範行政部門與立法部門之分立與制衡）</p>
+                    
+                    <h3 id="section-3-1" class="text-xl font-bold text-gray-700 mt-6 mb-3">第一節 行政部門</h3>
+                    <div class="pl-2 border-l-4 border-law-600/20 mb-6">
+                        <p class="article-content">
+                            <span class="article-number">第六條</span>
+                            本會置會長一人，對外代表本會，對內領導行政部門。
+                        </p>
+                        <p class="article-content">
+                            <span class="article-number">第七條</span>
+                            行政部門下設秘書處、活動部、權益部、公關部、財務部等單位，各部置部長一人。
+                        </p>
+                    </div>
+
+                    <h3 id="section-3-2" class="text-xl font-bold text-gray-700 mt-6 mb-3">第二節 立法部門</h3>
+                    <div class="pl-2 border-l-4 border-law-600/20 mb-6">
+                        <p class="article-content">
+                            <span class="article-number">第八條</span>
+                            學生議會為本會最高立法機關，由各班選舉之學生議員組成。
+                        </p>
+                        <p class="article-content">
+                            <span class="article-number">第九條</span>
+                            學生議會職權如下：<br>
+                            一、議決本會法規之制定、修正及廢止案。<br>
+                            二、審議本會預算、決算案。<br>
+                            三、質詢行政部門之施政。
+                        </p>
+                    </div>
+
+                     <h2 id="chapter-4">第四章 附則</h2>
+                    <div class="pl-2 border-l-4 border-law-600/20 mb-6">
+                         <div class="h-64 bg-base-200/30 rounded flex items-center justify-center text-gray-400">
+                             (此處為更多法規條文，測試滾動效果)
+                         </div>
+                    </div>
+                </article>
+
+            </div>
+            
+            <footer class="mt-12 text-center text-sm text-gray-500 pb-12">
+                &copy; 2024 NKNUASHS Student Association. All rights reserved.
+            </footer>
+        </main>
+    </div>
+
+    <button id="mobile-toc-btn" class="btn btn-circle btn-primary btn-lg fixed bottom-6 right-6 shadow-2xl z-50 lg:hidden border-none bg-law-600 hover:bg-law-600/90 text-white" aria-label="打開目錄">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+        </svg>
+    </button>
+
+    <div id="mobile-drawer-overlay" class="fixed inset-0 bg-black/50 z-[60] hidden opacity-0 transition-opacity duration-300"></div>
+    <div id="mobile-drawer" class="fixed inset-y-0 left-0 w-3/4 max-w-xs bg-base-100 z-[70] shadow-2xl transform -translate-x-full transition-transform duration-300 p-6 flex flex-col">
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="font-rounded font-bold text-xl text-law-600">法規目錄</h3>
+            <button id="close-drawer" class="btn btn-circle btn-ghost btn-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+        <ul class="menu w-full p-0 font-rounded overflow-y-auto flex-1" id="mobile-toc-list">
+            </ul>
+    </div>
+
+    <div class="toast toast-top toast-center z-[100]">
+        <div id="toast-success" class="alert alert-success hidden shadow-lg font-rounded text-white">
+            <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            <span>連結已複製到剪貼簿！</span>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. 自動生成目錄 ---
+        function generateTOC() {
+            const headings = document.querySelectorAll('article h2, article h3');
+            const tocList = document.getElementById('desktop-toc');
+            const mobileTocList = document.getElementById('mobile-toc-list');
+            
+            headings.forEach(heading => {
+                const id = heading.id;
+                const text = heading.innerText;
+                const level = heading.tagName.toLowerCase();
+                
+                const li = document.createElement('li');
+                const a = document.createElement('a');
+                a.href = `#${id}`;
+                a.textContent = text;
+                a.className = 'toc-link block py-2 px-4 border-l-4 border-transparent hover:bg-base-200 transition-colors';
+                
+                // 根據層級縮排
+                if (level === 'h3') {
+                    a.classList.add('ml-4', 'text-sm', 'text-gray-500');
+                } else {
+                    a.classList.add('font-medium', 'text-gray-700');
+                }
+
+                // 點擊事件 (平滑滾動 + 關閉手機抽屜)
+                a.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    document.querySelector(`#${id}`).scrollIntoView({ behavior: 'smooth' });
+                    closeMobileDrawer();
+                    // 更新網址 Hash 但不跳動
+                    history.pushState(null, null, `#${id}`);
+                });
+
+                li.appendChild(a);
+                
+                // 同時添加到桌面和手機目錄
+                tocList.appendChild(li);
+                mobileTocList.appendChild(li.cloneNode(true)); // Clone for mobile
+            });
+
+            // 為手機版 clone 的元素重新綁定事件
+            mobileTocList.querySelectorAll('a').forEach(a => {
+                a.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const targetId = a.getAttribute('href');
+                    document.querySelector(targetId).scrollIntoView({ behavior: 'smooth' });
+                    closeMobileDrawer();
+                });
+            });
+        }
+
+        // --- 2. Scroll Spy (滾動高亮目錄) ---
+        function initScrollSpy() {
+            const headings = document.querySelectorAll('article h2, article h3');
+            const navLinks = document.querySelectorAll('.toc-link');
+
+            window.addEventListener('scroll', () => {
+                let current = '';
+                
+                headings.forEach(section => {
+                    const sectionTop = section.offsetTop;
+                    const sectionHeight = section.clientHeight;
+                    // 調整 offset 值以符合 sticky header
+                    if (scrollY >= (sectionTop - 150)) {
+                        current = '#' + section.id;
+                    }
+                });
+
+                navLinks.forEach(link => {
+                    link.classList.remove('active');
+                    if (link.getAttribute('href') === current) {
+                        link.classList.add('active');
+                    }
+                });
+            });
+        }
+
+        // --- 3. 手機版互動 (上滑顯示按鈕) ---
+        let lastScrollTop = 0;
+        const fab = document.getElementById('mobile-toc-btn');
+        const drawer = document.getElementById('mobile-drawer');
+        const overlay = document.getElementById('mobile-drawer-overlay');
+        const closeBtn = document.getElementById('close-drawer');
+
+        window.addEventListener('scroll', () => {
+            if (window.innerWidth >= 1024) return; // 桌面版不執行
+
+            let st = window.pageYOffset || document.documentElement.scrollTop;
+            if (st <= 0) {
+                fab.classList.remove('visible'); // 到頂部隱藏
+                return;
+            }
+
+            // 往上滑 (st < lastScrollTop) 且滾動超過一定距離
+            if (st < lastScrollTop && st > 100) {
+                fab.classList.add('visible');
+            } else {
+                fab.classList.remove('visible');
+            }
+            lastScrollTop = st;
+        }, { passive: true });
+
+        // 開啟抽屜
+        fab.addEventListener('click', () => {
+            drawer.classList.remove('-translate-x-full');
+            overlay.classList.remove('hidden');
+            setTimeout(() => overlay.classList.remove('opacity-0'), 10); // Fade in effect
+            fab.classList.remove('visible'); // 打開目錄時隱藏按鈕
+        });
+
+        // 關閉抽屜
+        function closeMobileDrawer() {
+            drawer.classList.add('-translate-x-full');
+            overlay.classList.add('opacity-0');
+            setTimeout(() => overlay.classList.add('hidden'), 300);
+        }
+
+        closeBtn.addEventListener('click', closeMobileDrawer);
+        overlay.addEventListener('click', closeMobileDrawer);
+
+        // --- 4. 複製網址功能 ---
+        function copyUrl() {
+            navigator.clipboard.writeText(window.location.href).then(() => {
+                const toast = document.getElementById('toast-success');
+                toast.classList.remove('hidden');
+                setTimeout(() => {
+                    toast.classList.add('hidden');
+                }, 2000);
+            });
+        }
+
+        // --- 初始化 ---
+        document.addEventListener('DOMContentLoaded', () => {
+            generateTOC();
+            initScrollSpy();
+        });
+
+    </script>
+</body>
+</html>
