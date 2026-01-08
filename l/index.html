@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RWD 上滑顯示目錄示範</title>
+    <style>
+        /* --- 基礎設定 --- */
+        * { box-sizing: border-box; }
+        body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; line-height: 1.6; color: #333; }
+        
+        /* --- 佈局容器 --- */
+        .layout-container {
+            display: flex;
+            max-width: 1200px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        /* --- 側邊欄 (TOC) --- */
+        .sidebar {
+            width: 280px;
+            flex-shrink: 0;
+            background: #f8f9fa;
+            border-right: 1px solid #ddd;
+            height: 100vh;
+            position: sticky;
+            top: 0;
+            overflow-y: auto;
+            padding: 2rem;
+            transition: transform 0.3s ease;
+            z-index: 1000;
+        }
+
+        .sidebar h3 { margin-top: 0; font-size: 1.2rem; border-bottom: 2px solid #333; padding-bottom: 0.5rem; }
+        
+        /* 目錄列表樣式 */
+        .toc-list { list-style: none; padding: 0; }
+        .toc-list li { margin-bottom: 0.5rem; }
+        .toc-list a { text-decoration: none; color: #666; display: block; transition: color 0.2s; }
+        .toc-list a:hover { color: #d32f2f; }
+        .toc-list .sub-item { padding-left: 1rem; font-size: 0.9em; border-left: 2px solid #ddd; margin-top: 5px;}
+
+        /* --- 主要內容區 --- */
+        .content {
+            flex-grow: 1;
+            padding: 2rem 4rem;
+            min-width: 0;
+        }
+        
+        /* 模擬很長的文章內容 */
+        .dummy-block { height: 300px; background: #fff; margin-bottom: 20px; }
+        h1 { font-size: 2.5rem; margin-bottom: 2rem; }
+        h2 { margin-top: 3rem; border-left: 5px solid #d32f2f; padding-left: 15px; }
+
+        /* --- 手機版觸發按鈕 (預設隱藏) --- */
+        #toc-trigger {
+            display: none; /* 電腦版不顯示 */
+            position: fixed;
+            left: 0;
+            top: 60%; /* 偏下方，手指好按的位置 */
+            transform: translateY(-50%) translateX(-100%); /* 藏在左邊界外 */
+            background: #333;
+            color: white;
+            padding: 12px 16px 12px 8px;
+            border-radius: 0 8px 8px 0;
+            cursor: pointer;
+            z-index: 1100;
+            box-shadow: 2px 2px 10px rgba(0,0,0,0.2);
+            font-weight: bold;
+            font-size: 14px;
+            transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            user-select: none;
+        }
+
+        /* 按鈕顯示狀態 class */
+        #toc-trigger.is-visible {
+            transform: translateY(-50%) translateX(0);
+        }
+
+        /* --- 遮罩層 (Backdrop) --- */
+        #backdrop {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 900;
+            backdrop-filter: blur(2px);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        #backdrop.is-active {
+            opacity: 1;
+        }
+
+        /* --- RWD 手機版樣式 (< 768px) --- */
+        @media (max-width: 768px) {
+            .layout-container { display: block; }
+            .content { padding: 1rem 1.5rem; }
+
+            /* 側邊欄變為抽屜式導航 */
+            .sidebar {
+                position: fixed;
+                left: 0;
+                top: 0;
+                width: 80%;
+                max-width: 300px;
+                transform: translateX(-100%); /* 預設完全收起 */
+                box-shadow: 4px 0 15px rgba(0,0,0,0.1);
+            }
+
+            /* 側邊欄打開狀態 */
+            .sidebar.is-open {
+                transform: translateX(0);
+            }
+
+            /* 手機版顯示按鈕 */
+            #toc-trigger { display: block; }
+            
+            /* 打開時顯示遮罩 */
+            #backdrop { display: block; pointer-events: none; } /* 預設不擋點擊，active才擋 */
+            .sidebar.is-open ~ #backdrop { pointer-events: auto; opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="toc-trigger">目錄 &gt;</div>
+
+    <div class="layout-container">
+        <aside class="sidebar" id="sidebar">
+            <h3>本頁目錄</h3>
+            <ul class="toc-list" id="toc-content">
+                </ul>
+        </aside>
+
+        <main class="content">
+            <h1>Astro 框架與 RWD 側邊目錄設計</h1>
+            <p>請嘗試將瀏覽器視窗縮小至手機寬度，然後閱讀下方長文。</p>
+            <p>（這是一個示範頁面，內容為隨機填充文字）</p>
+
+            <h2 id="section-1">第一章：前言與動機</h2>
+            <p>這是一個段落。當你在手機上瀏覽此頁面並嘗試「往下閱讀」時，畫面會保持乾淨。但當你需要跳轉章節而「往上滑動」時，左側會浮現目錄按鈕。</p>
+            <div class="dummy-block">內文佔位區...</div>
+            
+            <h2 id="section-2">第二章：技術實現原理</h2>
+            <p>我們使用 JavaScript 監聽 Scroll 事件，判斷當前捲軸位置與上一次位置的差值 (Delta)。</p>
+            <div class="dummy-block">內文佔位區...</div>
+
+            <h3 id="section-2-1">2.1 CSS Transform 的應用</h3>
+            <p>利用 translateX 來控制側邊欄與按鈕的進出，效能比改變 left/top 更好。</p>
+            <div class="dummy-block">內文佔位區...</div>
+
+            <h2 id="section-3">第三章：使用者體驗優化</h2>
+            <p>為了避免按鈕在手指微小震動時頻繁閃爍，我們設定了一個 Threshold (門檻值)。</p>
+            <div class="dummy-block">內文佔位區...</div>
+            <div class="dummy-block">內文佔位區...</div>
+
+            <h2 id="section-4">第四章：結論</h2>
+            <p>這種設計常見於新聞網站或長篇閱讀網站 (如 Medium App 的 header 行為)。</p>
+            <div class="dummy-block">內文佔位區...</div>
+        </main>
+
+        <div id="backdrop"></div>
+    </div>
+
+    <script>
+        // --- 1. 自動生成目錄 (模擬 Astro 的自動生成) ---
+        // 在真實 Astro 專案中這部分會在 Server 端生成，這裡用 JS 模擬
+        const tocList = document.getElementById('toc-content');
+        const headings = document.querySelectorAll('main h2, main h3');
+        
+        headings.forEach(heading => {
+            const li = document.createElement('li');
+            const a = document.createElement('a');
+            a.textContent = heading.textContent;
+            a.href = '#' + heading.id;
+            
+            // 點擊後平滑捲動並關閉目錄
+            a.addEventListener('click', (e) => {
+                e.preventDefault();
+                document.querySelector(a.getAttribute('href')).scrollIntoView({ behavior: 'smooth' });
+                closeSidebar(); // 手機版點擊後自動關閉
+            });
+
+            if(heading.tagName === 'H3') {
+                li.className = 'sub-item';
+            }
+            li.appendChild(a);
+            tocList.appendChild(li);
+        });
+
+
+        // --- 2. 核心互動邏輯 ---
+        const triggerBtn = document.getElementById('toc-trigger');
+        const sidebar = document.getElementById('sidebar');
+        const backdrop = document.getElementById('backdrop');
+        
+        let lastScrollTop = 0;
+        let isScrollingUp = false;
+        
+        // 監聽滾動
+        window.addEventListener('scroll', () => {
+            // 只在手機版寬度執行邏輯，優化效能
+            if (window.innerWidth > 768) return;
+
+            const currentScroll = window.pageYOffset || document.documentElement.scrollTop;
+            
+            // 避免負值 (iOS彈性滾動)
+            if (currentScroll <= 0) {
+                lastScrollTop = 0;
+                triggerBtn.classList.remove('is-visible'); // 到頂部時隱藏
+                return;
+            }
+
+            // 判斷滾動方向
+            // 當前位置 < 上次位置 = 往上滑
+            if (currentScroll < lastScrollTop) {
+                // 往上滑：顯示按鈕
+                // 可以加一個簡單的防抖動：如果滾動距離差距太小就不動作
+                if (Math.abs(currentScroll - lastScrollTop) > 5) {
+                    triggerBtn.classList.add('is-visible');
+                }
+            } else {
+                // 往下滑：隱藏按鈕
+                triggerBtn.classList.remove('is-visible');
+            }
+
+            lastScrollTop = currentScroll;
+        }, { passive: true });
+
+
+        // --- 3. 開關側邊欄功能 ---
+        function openSidebar() {
+            sidebar.classList.add('is-open');
+            triggerBtn.classList.remove('is-visible'); // 打開後隱藏觸發按鈕
+        }
+
+        function closeSidebar() {
+            sidebar.classList.remove('is-open');
+        }
+
+        // 綁定事件
+        triggerBtn.addEventListener('click', openSidebar);
+        backdrop.addEventListener('click', closeSidebar);
+
+    </script>
+</body>
+</html>
