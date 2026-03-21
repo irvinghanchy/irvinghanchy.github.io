@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>Google Meet 郵件區塊生成器</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 40px; background-color: #f0f2f5; color: #1c1e21; }
+        .container { max-width: 650px; margin: 0 auto; background: #ffffff; padding: 30px; border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.1); }
+        h2 { margin-top: 0; color: #1a73e8; border-bottom: 2px solid #e8f0fe; padding-bottom: 10px; }
+        .input-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 14px; color: #4b4b4b; }
+        input { width: 100%; padding: 12px; border: 1px solid #ced4da; border-radius: 8px; box-sizing: border-box; transition: border 0.2s; }
+        input:focus { border-color: #1a73e8; outline: none; box-shadow: 0 0 0 2px rgba(26,115,232,0.2); }
+        input::placeholder { color: #aeb1b4; }
+        
+        .action-bar { margin: 25px 0 10px; display: flex; align-items: center; justify-content: space-between; }
+        .copy-btn { background-color: #34a853; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 14px; transition: background 0.2s; }
+        .copy-btn:hover { background-color: #2d8e47; }
+        .copy-btn:active { transform: translateY(1px); }
+        
+        #preview-container { background-color: #ffffff; border: 2px dashed #dcdcdc; border-radius: 12px; padding: 10px; min-height: 100px; }
+        .status-msg { font-size: 13px; color: #34a853; font-weight: bold; display: none; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Meet 郵件區塊生成器</h2>
+    
+    <div class="input-group">
+        <label>會議主題</label>
+        <input type="text" id="title" placeholder="學生議會114學年度第1次期初常會" oninput="update()">
+    </div>
+    <div class="input-group">
+        <label>日期與時間</label>
+        <input type="text" id="time" placeholder="2026年4月10日 10:00 - 11:00" oninput="update()">
+    </div>
+    <div class="input-group">
+        <label>會議代碼 (如: abc-defg-hij)</label>
+        <input type="text" id="code" placeholder="abc-defg-hij" oninput="update()">
+    </div>
+
+    <div class="action-bar">
+        <span style="font-weight: bold; color: #5f6368;">預覽畫面：</span>
+        <div>
+            <span id="status" class="status-msg">✓ 已成功複製到剪貼簿！</span>
+            <button class="copy-btn" onclick="copyToClipboard()">複製區塊</button>
+        </div>
+    </div>
+    
+    <div id="preview-container">
+        <div id="render-target">
+            </div>
+    </div>
+</div>
+
+<script>
+function getTemplate(title, time, code) {
+    const link = `https://meet.google.com/${code}`;
+    return `
+        <table cellpadding="0" cellspacing="0" border="0" style="width: 100%; max-width: 600px; background-color: #f8f9fa; border: 1px solid #e0e0e0; border-radius: 8px; font-family: Arial, sans-serif; margin: 10px 0;">
+            <tbody>
+                <tr>
+                    <td style="padding: 24px;">
+                        <table cellpadding="0" cellspacing="0" border="0" style="width: 100%;">
+                            <tr>
+                                <td style="vertical-align: middle; width: 40px;">
+                                    <img src="https://fonts.gstatic.com/s/i/productlogos/meet_2020q4/v1/web-64dp/logo_meet_2020q4_color_2x_web_64dp.png" alt="Meet" width="32" style="display: block;">
+                                </td>
+                                <td style="vertical-align: middle; padding-left: 12px;">
+                                    <h2 style="margin: 0; font-size: 18px; color: #3c4043; font-weight: 500;">Google Meet 會議詳細資訊</h2>
+                                </td>
+                            </tr>
+                        </table>
+                        <div style="margin-top: 20px; border-top: 1px solid #dadce0; padding-top: 20px;">
+                            <p style="margin: 0 0 10px 0; font-size: 14px; color: #5f6368;"><strong style="color: #3c4043;">會議主題：</strong> ${title}</p>
+                            <p style="margin: 0 0 10px 0; font-size: 14px; color: #5f6368;"><strong style="color: #3c4043;">時間：</strong> ${time}</p>
+                            <p style="margin: 0 0 20px 0; font-size: 14px; color: #5f6368;"><strong style="color: #3c4043;">會議代碼：</strong> <span style="font-family: monospace; background: #eceff1; padding: 2px 6px; border-radius: 4px;">${code}</span></p>
+                        </div>
+                        <table cellpadding="0" cellspacing="0" border="0">
+                            <tr>
+                                <td align="center" bgcolor="#1a73e8" style="border-radius: 4px;">
+                                    <a href="${link}" target="_blank" style="padding: 12px 24px; font-size: 14px; color: #ffffff; font-family: Arial, sans-serif; font-weight: 500; text-decoration: none; display: inline-block;">加入 Google Meet 會議</a>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    `;
+}
+
+function update() {
+    const title = document.getElementById('title').value || '[請輸入主題]';
+    const time = document.getElementById('time').value || '[請輸入時間]';
+    const code = document.getElementById('code').value || 'xxx-xxxx-xxx';
+    document.getElementById('render-target').innerHTML = getTemplate(title, time, code);
+}
+
+async function copyToClipboard() {
+    const renderTarget = document.getElementById('render-target');
+    const status = document.getElementById('status');
+    
+    try {
+        // 使用 ClipboardItem 進行 Rich Text (HTML) 複製
+        const blob = new Blob([renderTarget.innerHTML], { type: 'text/html' });
+        const plainText = new Blob([renderTarget.innerText], { type: 'text/plain' });
+        const data = [new ClipboardItem({ 'text/html': blob, 'text/plain': plainText })];
+        
+        await navigator.clipboard.write(data);
+        
+        // 顯示成功訊息
+        status.style.display = 'inline';
+        setTimeout(() => { status.style.display = 'none'; }, 3000);
+    } catch (err) {
+        console.error('複製失敗: ', err);
+        alert('複製失敗，請手動選取預覽區塊後複製。');
+    }
+}
+
+// 初始化
+update();
+</script>
+
+</body>
+</html>
