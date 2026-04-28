@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>學生會選舉計票紙產生器</title>
+    <style>
+        :root {
+            --primary-color: #000;
+        }
+        body {
+            font-family: "Microsoft JhengHei", sans-serif;
+            margin: 0;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+            background-color: #e0e0e0;
+        }
+        /* 左側控制面板 */
+        #sidebar {
+            width: 350px;
+            background: #fff;
+            padding: 20px;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+            overflow-y: auto;
+            z-index: 10;
+        }
+        .section {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px dashed #ccc;
+        }
+        .section h3 {
+            margin-top: 0;
+            font-size: 16px;
+            color: #333;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        input[type="text"], input[type="number"] {
+            width: 100%;
+            padding: 6px;
+            margin-top: 4px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .candidate-item {
+            background: #f9f9f9;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background: #4285f4;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 14px;
+            margin-right: 5px;
+            margin-top: 5px;
+        }
+        button:hover { background: #3367d6; }
+        button.danger { background: #ea4335; }
+        button.danger:hover { background: #c5221f; }
+        button.print-btn { background: #34a853; width: 100%; font-size: 16px; padding: 12px; margin-top: 15px; }
+        button.print-btn:hover { background: #2b8c46; }
+
+        /* 右側預覽區 */
+        #preview-container {
+            flex-grow: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        /* 頁面基本設定：A3 橫式比例 */
+        .page {
+            background: white;
+            width: 420mm;
+            min-height: 297mm;
+            padding: 15mm;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            margin-bottom: 30px;
+            box-sizing: border-box;
+            position: relative;
+        }
+
+        /* 計票紙內容樣式 */
+        .tally-title {
+            text-align: center;
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: var(--primary-color);
+        }
+        table.tally-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: center;
+        }
+        table.tally-table th, table.tally-table td {
+            border: 2px solid #000;
+            padding: 8px;
+            vertical-align: top;
+        }
+        .row-header {
+            width: 100px;
+            font-weight: bold;
+            font-size: 18px;
+            vertical-align: middle !important;
+        }
+        .cand-num {
+            font-size: 28px;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+        .cand-name {
+            font-size: 22px;
+            font-weight: bold;
+        }
+        .joint-name {
+            display: flex;
+            justify-content: space-around;
+            font-size: 18px;
+        }
+        .joint-half {
+            width: 50%;
+        }
+        .joint-half:first-child {
+            border-right: 1px solid #000;
+        }
+        .blank-cell {
+            height: 60px;
+        }
+        .paste-cell {
+            height: 80px;
+        }
+
+        /* 畫記區方格 */
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            gap: 2px;
+            margin-top: 10px;
+        }
+        .grid-box {
+            border: 1px solid #000;
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .grid-num {
+            color: #aaa;
+            font-size: 12px;
+            user-select: none;
+        }
+
+        /* 不足額競選特定佈局 (左、右、下) */
+        .ins-layout {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        .ins-top {
+            display: flex;
+            border-bottom: 2px solid #000;
+            flex-grow: 1;
+        }
+        .ins-left, .ins-right {
+            width: 50%;
+            padding: 5px;
+            box-sizing: border-box;
+        }
+        .ins-left { border-right: 2px solid #000; }
+        .ins-bottom {
+            padding: 5px;
+            box-sizing: border-box;
+        }
+
+        .signature-area {
+            text-align: right;
+            font-size: 20px;
+            font-weight: bold;
+            margin-top: 40px;
+            margin-right: 20px;
+        }
+
+        /* 補充條專用樣式 */
+        .supplemental-title {
+            text-align: left;
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            border-bottom: 2px solid #000;
+            padding-bottom: 5px;
+        }
+        .sup-label {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        /* 列印模式設定 */
+        @media print {
+            body { background: #fff; height: auto; overflow: visible; }
+            #sidebar { display: none; }
+            #preview-container { padding: 0; display: block; overflow: visible; }
+            .page { 
+                width: 100%; 
+                min-height: auto; 
+                margin: 0; 
+                padding: 10mm; 
+                box-shadow: none; 
+                page-break-after: always; 
+            }
+            @page { size: A3 landscape; margin: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="sidebar">
+        <div class="section">
+            <h3>一般資料</h3>
+            <label>學年度: <input type="number" id="input_year" value="114" onchange="render()"></label>
+            <label>選舉名稱: <input type="text" id="input_name" value="第十三屆會長及副會長" onchange="render()"></label>
+            <label>選舉區: <input type="text" id="input_dist" value="國中部" onchange="render()"></label>
+            <label>自訂標題 (填寫此欄將覆蓋上述設定): <input type="text" id="input_custom_title" placeholder="手動輸入完整標題" onchange="render()"></label>
+        </div>
+
+        <div class="section">
+            <h3>選舉模式設定</h3>
+            <label><input type="radio" name="cand_mode" value="independent" checked onchange="render()"> 獨立參選 (單人)</label>
+            <label><input type="radio" name="cand_mode" value="joint" onchange="render()"> 聯名參選 (兩人一組)</label>
+            <hr style="border:0; border-top:1px solid #ccc; margin:10px 0;">
+            <label><input type="radio" name="race_mode" value="sufficient" checked onchange="render()"> 足額競選 (共用一廢票區)</label>
+            <label><input type="radio" name="race_mode" value="insufficient" onchange="render()"> 不足額競選 (含同意/不同意/廢票)</label>
+        </div>
+
+        <div class="section">
+            <h3>候選人名單</h3>
+            <div id="candidates_list"></div>
+            <button onclick="addCandidate()">+ 新增候選人</button>
+        </div>
+
+        <div class="section">
+            <h3>其他選項</h3>
+            <label><input type="radio" name="color_mode" value="bw" checked onchange="render()"> 黑白輸出</label>
+            <label><input type="radio" name="color_mode" value="color" onchange="render()"> 彩色輸出 (紅字標題與號次)</label>
+            <label>計票格數量預設 (每區): <input type="number" id="box_count" value="100" onchange="render()"></label>
+            <label style="display:flex; align-items:center; margin-top:10px;">
+                <input type="checkbox" id="show_supplemental" checked onchange="render()" style="margin-right:5px;">
+                在下一頁產生補充條
+            </label>
+            
+            <button class="print-btn" onclick="window.print()">列印 / 匯出 PDF</button>
+            <p style="font-size:12px; color:#666; margin-top:10px;">*若需A2或A1尺寸，請點擊列印後「另存為PDF」，並在紙張大小設定中調整。</p>
+        </div>
+    </div>
+
+    <div id="preview-container">
+        </div>
+
+    <script>
+        let candidates = [
+            { id: 1, name1: "賴清德", name2: "蕭美琴" },
+            { id: 2, name1: "林書豪", name2: "王建民" }
+        ];
+
+        function addCandidate() {
+            let nextId = candidates.length > 0 ? Math.max(...candidates.map(c => c.id)) + 1 : 1;
+            candidates.push({ id: nextId, name1: "新候選人", name2: "副手" });
+            render();
+        }
+
+        function removeCandidate(index) {
+            candidates.splice(index, 1);
+            render();
+        }
+
+        function updateCandidate(index, field, value) {
+            candidates[index][field] = value;
+            render();
+        }
+
+        function generateGrid(count) {
+            let html = '<div class="grid-container">';
+            for(let i=1; i<=count; i++) {
+                html += `<div class="grid-box"><span class="grid-num">${i}</span></div>`;
+            }
+            html += '</div>';
+            return html;
+        }
+
+        function render() {
+            // 讀取設定狀態
+            const candMode = document.querySelector('input[name="cand_mode"]:checked').value;
+            const raceMode = document.querySelector('input[name="race_mode"]:checked').value;
+            const colorMode = document.querySelector('input[name="color_mode"]:checked').value;
+            const boxCount = parseInt(document.getElementById('box_count').value) || 100;
+            const showSupplemental = document.getElementById('show_supplemental').checked;
+            
+            // 更新色彩變數
+            document.documentElement.style.setProperty('--primary-color', colorMode === 'color' ? '#e53935' : '#000');
+
+            // 重新渲染候選人輸入清單
+            let listHtml = '';
+            candidates.forEach((c, idx) => {
+                listHtml += `<div class="candidate-item">
+                    <label>號次: <input type="number" value="${c.id}" onchange="updateCandidate(${idx}, 'id', this.value)"></label>
+                    <label>${candMode === 'joint' ? '會長姓名' : '姓名'}: <input type="text" value="${c.name1}" onchange="updateCandidate(${idx}, 'name1', this.value)"></label>
+                    ${candMode === 'joint' ? `<label>副會長姓名: <input type="text" value="${c.name2}" onchange="updateCandidate(${idx}, 'name2', this.value)"></label>` : ''}
+                    <button class="danger" onclick="removeCandidate(${idx})">刪除</button>
+                </div>`;
+            });
+            document.getElementById('candidates_list').innerHTML = listHtml;
+
+            // 準備計票紙資料
+            let customTitle = document.getElementById('input_custom_title').value.trim();
+            let titleText = customTitle;
+            if (!titleText) {
+                let y = document.getElementById('input_year').value;
+                let n = document.getElementById('input_name').value;
+                let d = document.getElementById('input_dist').value;
+                titleText = `國立高雄師範大學附屬高級中學學生會${y}學年度${n}選舉${d}選舉區計票紙`;
+            }
+
+            let previewHtml = '';
+
+            // 建立主計票紙頁面
+            previewHtml += `<div class="page"><div class="tally-title">${titleText}</div>`;
+            previewHtml += `<table class="tally-table">`;
+
+            // 計算欄位陣列 (足額時最後加一個廢票欄)
+            let columns = [...candidates];
+            if (raceMode === 'sufficient') {
+                columns.push({ isInvalid: true });
+            }
+
+            // 1. 號次列
+            previewHtml += `<tr><th class="row-header">號次</th>`;
+            columns.forEach(c => {
+                if (c.isInvalid) previewHtml += `<th>-</th>`;
+                else previewHtml += `<th class="cand-num">${c.id}</th>`;
+            });
+            previewHtml += `</tr>`;
+
+            // 2. 姓名列
+            previewHtml += `<tr><th class="row-header">姓名</th>`;
+            columns.forEach(c => {
+                if (c.isInvalid) {
+                    previewHtml += `<th class="cand-name">廢票</th>`;
+                } else {
+                    if (candMode === 'joint') {
+                        previewHtml += `<th>
+                            <div class="joint-name">
+                                <div class="joint-half"><div style="font-size:12px; font-weight:normal;">會長</div>${c.name1}</div>
+                                <div class="joint-half"><div style="font-size:12px; font-weight:normal;">副會長</div>${c.name2}</div>
+                            </div>
+                        </th>`;
+                    } else {
+                        previewHtml += `<th class="cand-name">${c.name1}</th>`;
+                    }
+                }
+            });
+            previewHtml += `</tr>`;
+
+            // 3. 得票數列
+            previewHtml += `<tr><th class="row-header">得票數</th>`;
+            columns.forEach(() => { previewHtml += `<td class="blank-cell"></td>`; });
+            previewHtml += `</tr>`;
+
+            // 4. 黏貼區列
+            previewHtml += `<tr><th class="row-header">黏貼區</th>`;
+            columns.forEach(() => { previewHtml += `<td class="paste-cell"></td>`; });
+            previewHtml += `</tr>`;
+
+            // 5. 計票劃記區列
+            previewHtml += `<tr><th class="row-header" style="height:400px;">計票劃記區</th>`;
+            columns.forEach(c => {
+                if (c.isInvalid) {
+                    // 足額競選的獨立廢票區
+                    previewHtml += `<td><div style="font-weight:bold; margin-bottom:5px;">廢票畫記</div>${generateGrid(boxCount)}</td>`;
+                } else {
+                    if (raceMode === 'sufficient') {
+                        // 足額競選一般畫記
+                        previewHtml += `<td>${generateGrid(boxCount)}</td>`;
+                    } else {
+                        // 不足額競選：左(同意)、右(不同意)、下(廢票)
+                        previewHtml += `<td style="padding:0;">
+                            <div class="ins-layout">
+                                <div class="ins-top">
+                                    <div class="ins-left"><div style="font-weight:bold;">同意票</div>${generateGrid(Math.floor(boxCount/2))}</div>
+                                    <div class="ins-right"><div style="font-weight:bold;">不同意票</div>${generateGrid(Math.floor(boxCount/2))}</div>
+                                </div>
+                                <div class="ins-bottom">
+                                    <div style="font-weight:bold;">廢票</div>${generateGrid(Math.floor(boxCount/2))}
+                                </div>
+                            </div>
+                        </td>`;
+                    }
+                }
+            });
+            previewHtml += `</tr>`;
+
+            previewHtml += `</table>`;
+            previewHtml += `<div class="signature-area">工作人員簽名：____________________</div>`;
+            previewHtml += `</div>`; // 結束主計票紙頁面
+
+            // 產生補充條頁面
+            if (showSupplemental) {
+                previewHtml += `<div class="page">`;
+                previewHtml += `<div class="supplemental-title">補充條黏貼區 (請由工作人員自行裁剪)</div>`;
+                
+                // 產生3列補充條供裁切使用
+                for(let row=0; row<3; row++) {
+                    previewHtml += `<table class="tally-table" style="margin-bottom: 30px;"><tr><th class="row-header">計票劃記區</th>`;
+                    columns.forEach(c => {
+                        let headerText = `<div class="sup-label">第 _____ 張</div>`;
+                        if (c.isInvalid) {
+                            previewHtml += `<td>${headerText}${generateGrid(boxCount)}</td>`;
+                        } else {
+                            if (raceMode === 'sufficient') {
+                                previewHtml += `<td>${headerText}${generateGrid(boxCount)}</td>`;
+                            } else {
+                                previewHtml += `<td style="padding:0;">
+                                    <div class="ins-layout">
+                                        <div style="padding:5px; border-bottom:1px solid #000;">${headerText}</div>
+                                        <div class="ins-top">
+                                            <div class="ins-left"><div style="font-weight:bold;">同意票</div>${generateGrid(Math.floor(boxCount/2))}</div>
+                                            <div class="ins-right"><div style="font-weight:bold;">不同意票</div>${generateGrid(Math.floor(boxCount/2))}</div>
+                                        </div>
+                                        <div class="ins-bottom"><div style="font-weight:bold;">廢票</div>${generateGrid(Math.floor(boxCount/2))}</div>
+                                    </div>
+                                </td>`;
+                            }
+                        }
+                    });
+                    previewHtml += `</tr></table>`;
+                }
+                previewHtml += `</div>`; // 結束補充條頁面
+            }
+
+            document.getElementById('preview-container').innerHTML = previewHtml;
+        }
+
+        // 初始化
+        window.onload = render;
+    </script>
+</body>
+</html>
